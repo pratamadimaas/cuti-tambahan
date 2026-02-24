@@ -183,10 +183,7 @@
             padding: 10px 12px;
             border-radius: 10px;
             background: rgba(255,255,255,0.05);
-            cursor: pointer;
-            transition: background .18s;
         }
-        .user-card:hover { background: rgba(255,255,255,0.09); }
         .user-avatar {
             width: 34px;
             height: 34px;
@@ -210,11 +207,6 @@
         }
         .user-role {
             font-size: 10.5px;
-            color: var(--sidebar-text);
-        }
-        .user-card .bi-chevron-right {
-            margin-left: auto;
-            font-size: 11px;
             color: var(--sidebar-text);
         }
 
@@ -635,45 +627,40 @@
     </div>
     @endif
 
+    {{-- SIDEBAR FOOTER: user info + tombol logout --}}
     <div class="sidebar-footer">
-        <div class="dropdown">
-            <div class="user-card" data-bs-toggle="dropdown">
-                <div class="user-avatar">
-                    {{ strtoupper(substr(auth()->user()->username ?? 'U', 0, 1)) }}
-                </div>
-                <div>
-                    <div class="user-name">
-                        @if(auth()->user()->isAdmin())
-                            {{ auth()->user()->username }}
-                        @elseif(auth()->user()->role === 'sekre')
-                            {{ auth()->user()->username }}
-                        @else
-                            {{ auth()->user()->pegawai->nama ?? auth()->user()->username }}
-                        @endif
-                    </div>
-                    <div class="user-role">
-                        @if(auth()->user()->isAdmin())
-                            Administrator
-                        @elseif(auth()->user()->role === 'sekre')
-                            Sekretariat
-                        @else
-                            Pegawai
-                        @endif
-                    </div>
-                </div>
-                <i class="bi bi-chevron-right"></i>
+        <div class="user-card mb-2">
+            <div class="user-avatar">
+                {{ strtoupper(substr(auth()->user()->username ?? 'U', 0, 1)) }}
             </div>
-            <ul class="dropdown-menu dropdown-menu-dark mb-1" style="min-width:180px; font-size:13px; border-radius:10px;">
-                <li>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    </form>
-                </li>
-            </ul>
+            <div style="overflow:hidden;">
+                <div class="user-name">
+                    @if(auth()->user()->isAdmin())
+                        {{ auth()->user()->username }}
+                    @elseif(auth()->user()->role === 'sekre')
+                        {{ auth()->user()->username }}
+                    @else
+                        {{ auth()->user()->pegawai->nama ?? auth()->user()->username }}
+                    @endif
+                </div>
+                <div class="user-role">
+                    @if(auth()->user()->isAdmin())
+                        Administrator
+                    @elseif(auth()->user()->role === 'sekre')
+                        Sekretariat
+                    @else
+                        Pegawai
+                    @endif
+                </div>
+            </div>
         </div>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger w-100"
+                    style="font-size:13px; border-radius:9px; padding:9px; font-weight:600;">
+                <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </button>
+        </form>
     </div>
 </aside>
 

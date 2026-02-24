@@ -32,12 +32,15 @@
                 <canvas id="canvasEl"></canvas>
                 <img id="preview-img" src="" alt="Preview Foto">
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <button type="button" class="btn btn-secondary camera-btn" id="btnStartCam">
                     <i class="bi bi-camera-fill me-1"></i> Buka Kamera
                 </button>
                 <button type="button" class="btn btn-primary camera-btn d-none" id="btnCapture">
                     <i class="bi bi-camera me-1"></i> Ambil Foto
+                </button>
+                <button type="button" class="btn btn-outline-primary camera-btn d-none" id="btnSwitchCam">
+                    <i class="bi bi-arrow-repeat me-1"></i> Ganti Kamera
                 </button>
                 <button type="button" class="btn btn-outline-secondary camera-btn d-none" id="btnRetake">
                     <i class="bi bi-arrow-counterclockwise me-1"></i> Ulangi
@@ -112,6 +115,7 @@
 <script>
 (function() {
     let stream = null;
+    let facingMode = 'user';
     const videoEl    = document.getElementById('videoEl');
     const canvasEl   = document.getElementById('canvasEl');
     const previewImg = document.getElementById('preview-img');
@@ -119,18 +123,28 @@
     const btnStart   = document.getElementById('btnStartCam');
     const btnCapture = document.getElementById('btnCapture');
     const btnRetake  = document.getElementById('btnRetake');
+    const btnSwitch  = document.getElementById('btnSwitchCam');
 
-    btnStart.addEventListener('click', async () => {
+    async function startCamera() {
+        if (stream) stream.getTracks().forEach(t => t.stop());
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode }, audio: false });
             videoEl.srcObject = stream;
             videoEl.style.display = 'block';
             previewImg.style.display = 'none';
             btnStart.classList.add('d-none');
             btnCapture.classList.remove('d-none');
+            btnSwitch.classList.remove('d-none');
         } catch (e) {
             alert('Tidak dapat mengakses kamera: ' + e.message);
         }
+    }
+
+    btnStart.addEventListener('click', () => startCamera());
+
+    btnSwitch.addEventListener('click', () => {
+        facingMode = facingMode === 'user' ? 'environment' : 'user';
+        startCamera();
     });
 
     btnCapture.addEventListener('click', () => {
@@ -144,21 +158,21 @@
         previewImg.style.display = 'block';
         videoEl.style.display    = 'none';
 
-        // Stop stream
         if (stream) stream.getTracks().forEach(t => t.stop());
 
         btnCapture.classList.add('d-none');
+        btnSwitch.classList.add('d-none');
         btnRetake.classList.remove('d-none');
     });
 
-    btnRetake.addEventListener('click', async () => {
+    btnRetake.addEventListener('click', () => {
         fotoInput.value = '';
         previewImg.style.display = 'none';
         btnRetake.classList.add('d-none');
+        btnSwitch.classList.add('d-none');
         btnStart.classList.remove('d-none');
     });
 
-    // Validasi foto sebelum submit
     document.getElementById('formBukuTamu').addEventListener('submit', function(e) {
         if (!fotoInput.value) {
             e.preventDefault();
