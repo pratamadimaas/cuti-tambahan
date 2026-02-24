@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Pegawai;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+
+class PegawaiController extends Controller
+{
+    public function index()
+    {
+        $pegawai = Pegawai::with(['user', 'seksi'])->latest()->get();
+        return view('admin.pegawai.index', compact('pegawai'));
+    }
+
+    public function create()
+    {
+        $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
+        return view('admin.pegawai.create', compact('seksiList'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama'               => 'required|string|max:255',
+            'nip'                => 'required|string|unique:pegawai,nip|unique:users,username|max:18',
+            'pangkat_gol'        => 'required|string|max:255',
+            'jabatan'            => 'required|string|max:255',
+            'unit_kerja'         => 'required|string|max:255',
+            'seksi_id'           => 'nullable|exists:seksi,id',
+            'sisa_cuti_tahunan'  => 'nullable|integer|min:0',
+            'sisa_cuti_tambahan' => 'nullable|integer|min:0',
+        ], [
+            'nip.unique' => 'NIP sudah terdaftar dalam sistem.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'username' => $request->nip,
+                'password' => Hash::make('123456'),
+                'role'     => 'pegawai',
+            ]);
+
+            $sisaTahunan = $request->sisa_cuti_tahunan ?? 12;
+            $sisaTambahan = $request->sisa_cuti_tambahan ?? 0;
+
+            Pegawai::create([
+                'user_id'              => $user->id,
+                'nama'                 => $request->nama,
+                'nip'                  => $request->nip,
+                'pangkat_gol'          => $request->pangkat_gol,
+                'jabatan'              => $request->jabatan,
+                'unit_kerja'           => $request->unit_kerja,
+                'seksi_id'             => $request->seksi_id,
+                'kuota_cuti_tahunan'   => $sisaTahunan,    // ← Set kuota = sisa awal
+                'kuota_cuti_tambahan'  => $sisaTambahan,   // ← Set kuota = sisa awal
+                'sisa_cuti_tahunan'    => $sisaTahunan,
+                'sisa_cuti_tambahan'   => $sisaTambahan,
+            ]);
+
+            DB::commit();
+            return redirect()->route('admin.pegawai.index')
+                ->with('success', 'Pegawai berhasil ditambahkan. Username: ' . $request->nip . ', Password: 123456');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menambahkan pegawai: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function edit(Pegawai $pegawai)
+    {
+        $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
+        return view('admin.pegawai.edit', compact('pegawai', 'seksiList'));
+    }
+
+    public function update(Request $request, Pegawai $pegawai)
+    {
+        $request->validate([
+            'nama'               => 'required|string|max:255',
+            'nip'                => 'required|string|max:18|unique:pegawai,nip,' . $pegawai->id . '|unique:users,username,' . $pegawai->user_id,
+            'pangkat_gol'        => 'required|string|max:255',
+            'jabatan'            => 'required|string|max:255',
+            'unit_kerja'         => 'required|string|max:255',
+            'seksi_id'           => 'nullable|exists:seksi,id',
+            'sisa_cuti_tahunan'  => 'nullable|integer|min:0',
+            'sisa_cuti_tambahan' => 'nullable|integer|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $pegawai->update($request->only([
+                'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id'
+            ]));
+
+            // Update sisa cuti
+            if ($request->has('sisa_cuti_tahunan')) {
+                $pegawai->sisa_cuti_tahunan = $request->sisa_cuti_tahunan;
+            }
+            if ($request->has('sisa_cuti_tambahan')) {
+                $pegawai->sisa_cuti_tambahan = $request->sisa_cuti_tambahan;
+            }
+
+            // IMPORTANT: Jika kuota belum pernah diset, set sama dengan sisa
+            if (is_null($pegawai->kuota_cuti_tahunan)) {
+                $pegawai->kuota_cuti_tahunan = $pegawai->sisa_cuti_tahunan;
+            }
+            if (is_null($pegawai->kuota_cuti_tambahan)) {
+                $pegawai->kuota_cuti_tambahan = $pegawai->sisa_cuti_tambahan;
+            }
+
+            $pegawai->save();
+            $pegawai->user->update(['username' => $request->nip]);
+
+            DB::commit();
+            return redirect()->route('admin.pegawai.index')
+                ->with('success', 'Data pegawai berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memperbarui pegawai: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function destroy(Pegawai $pegawai)
+    {
+        DB::beginTransaction();
+        try {
+            $pegawai->delete();
+            
+            DB::commit();
+            return redirect()->route('admin.pegawai.index')
+                ->with('success', 'Pegawai dan akun user berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus pegawai: ' . $e->getMessage());
+        }
+    }
+
+    public function profil()
+    {
+        $pegawai = auth()->user()->pegawai;
+        return view('pegawai.profil', compact('pegawai'));
+    }
+}
