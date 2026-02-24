@@ -10,6 +10,10 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
+            $role = Auth::user()->role;
+            if ($role === 'sekre') {
+                return redirect()->route('admin.buku-tamu.index');
+            }
             return redirect()->route('dashboard');
         }
         return view('auth.login');
@@ -26,9 +30,15 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            
-            return redirect()->intended(route('dashboard'))
-                ->with('success', 'Selamat datang, ' . Auth::user()->username);
+
+            $role = Auth::user()->role;
+            $name = Auth::user()->username;
+
+            if ($role === 'sekre') {
+                return redirect()->route('admin.buku-tamu.index')->with('success', 'Selamat datang, ' . $name);
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Selamat datang, ' . $name);
         }
 
         return back()->with('error', 'Username atau password salah')->withInput();
@@ -39,7 +49,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect()->route('login')->with('success', 'Berhasil logout');
     }
 }
