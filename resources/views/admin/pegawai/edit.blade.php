@@ -108,7 +108,7 @@
                         @enderror
                     </div>
 
-                    {{-- INFO KEPALA SEKSI (readonly, otomatis) --}}
+                    {{-- INFO KEPALA SEKSI --}}
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kepala Seksi</label>
                         <div class="form-control bg-light d-flex flex-column justify-content-center" 
@@ -129,7 +129,8 @@
                                class="form-control @error('sisa_cuti_tahunan') is-invalid @enderror"
                                name="sisa_cuti_tahunan" 
                                value="{{ old('sisa_cuti_tahunan', $pegawai->sisa_cuti_tahunan) }}" 
-                               min="0">
+                               min="0"
+                               step="0.5">
                         @error('sisa_cuti_tahunan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -141,7 +142,8 @@
                                class="form-control @error('sisa_cuti_tambahan') is-invalid @enderror"
                                name="sisa_cuti_tambahan" 
                                value="{{ old('sisa_cuti_tambahan', $pegawai->sisa_cuti_tambahan) }}" 
-                               min="0">
+                               min="0"
+                               step="0.5">
                         @error('sisa_cuti_tambahan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

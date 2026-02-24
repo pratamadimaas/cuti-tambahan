@@ -77,22 +77,23 @@
                         <td style="font-size:12.5px;">{{ $p->jabatan ?? '-' }}</td>
 
                         {{-- Cuti Tahunan --}}
-                        <td class="text-center border-start">{{ $p->kuota_tahunan }}</td>
-                        <td class="text-center">{{ $p->terpakai_tahunan }}</td>
-                        <td class="text-center">
-                            <span class="badge {{ $p->sisa_cuti_tahunan > 5 ? 'bg-success' : ($p->sisa_tahunan > 0 ? 'bg-warning text-dark' : 'bg-danger') }}">
-                                {{ $p->sisa_cuti_tahunan }} hari
-                            </span>
-                        </td>
+                            <td class="text-center border-start">{{ $p->kuota_tahunan }}</td>
+                            <td class="text-center">{{ $p->terpakai_tahunan }}</td>
+                            <td class="text-center">
+                                <span class="badge {{ (float)$p->sisa_tahunan > 5 ? 'bg-success' : ((float)$p->sisa_tahunan > 0 ? 'bg-warning text-dark' : 'bg-danger') }}">
+                                    {{ $p->sisa_tahunan }} hari
+                                </span>
+                            </td>
 
-                        {{-- Cuti Tambahan --}}
-                        <td class="text-center border-start">{{ $p->kuota_tambahan }}</td>
-                        <td class="text-center">{{ $p->terpakai_tambahan }}</td>
-                        <td class="text-center">
-                            <span class="badge {{ $p->sisa_cuti_tambahan > 5 ? 'bg-success' : ($p->sisa_cuti_tambahan > 0 ? 'bg-warning text-dark' : 'bg-danger') }}">
-                                {{ $p->sisa_cuti_tambahan }} hari
-                            </span>
-                        </td>
+                            {{-- Cuti Tambahan --}}
+                            <td class="text-center border-start">{{ $p->kuota_tambahan }}</td>
+                            <td class="text-center">{{ $p->terpakai_tambahan }}</td>
+                            <td class="text-center">
+                                <span class="badge {{ (float)$p->sisa_tambahan > 5 ? 'bg-success' : ((float)$p->sisa_tambahan > 0 ? 'bg-warning text-dark' : 'bg-danger') }}">
+                                    {{ $p->sisa_tambahan }} hari
+                                </span>
+                            </td>
+
                     </tr>
                     @empty
                     <tr>

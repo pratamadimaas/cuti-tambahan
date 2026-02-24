@@ -11,10 +11,19 @@ use Illuminate\Support\Facades\DB;
 class PegawaiController extends Controller
 {
     public function index()
-    {
-        $pegawai = Pegawai::with(['user', 'seksi'])->latest()->get();
-        return view('admin.pegawai.index', compact('pegawai'));
-    }
+{
+        $pegawai = Pegawai::with(['user', 'seksi'])->latest()->get()->map(function ($p) {
+        $infoCutiTahunan  = $p->getInfoCutiTahunan();
+        $infoCutiTambahan = $p->getInfoCutiTambahan();
+
+        $p->sisa_display_tahunan  = $infoCutiTahunan['sisa'];
+        $p->sisa_display_tambahan = $infoCutiTambahan['sisa'];
+
+        return $p;
+    });
+
+    return view('admin.pegawai.index', compact('pegawai'));
+}
 
     public function create()
     {
@@ -31,8 +40,8 @@ class PegawaiController extends Controller
             'jabatan'            => 'required|string|max:255',
             'unit_kerja'         => 'required|string|max:255',
             'seksi_id'           => 'nullable|exists:seksi,id',
-            'sisa_cuti_tahunan'  => 'nullable|integer|min:0',
-            'sisa_cuti_tambahan' => 'nullable|integer|min:0',
+            'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
+            'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
         ], [
             'nip.unique' => 'NIP sudah terdaftar dalam sistem.',
         ]);
@@ -86,8 +95,8 @@ class PegawaiController extends Controller
             'jabatan'            => 'required|string|max:255',
             'unit_kerja'         => 'required|string|max:255',
             'seksi_id'           => 'nullable|exists:seksi,id',
-            'sisa_cuti_tahunan'  => 'nullable|integer|min:0',
-            'sisa_cuti_tambahan' => 'nullable|integer|min:0',
+            'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
+            'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();

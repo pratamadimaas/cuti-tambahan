@@ -11,6 +11,15 @@ use App\Exports\PermohonanCutiExport;
 
 class RekapController extends Controller
 {
+    // ──────────── HELPER ────────────
+
+    private function formatHari(float $nilai): string
+    {
+        return $nilai == floor($nilai) ? (string)(int)$nilai : number_format($nilai, 1);
+    }
+
+    // ──────────── REKAP ────────────
+
     public function sisaCuti()
     {
         $tahunIni = date('Y');
@@ -19,19 +28,18 @@ class RekapController extends Controller
             $query->where('status', 'disetujui');
         }])->get()->map(function ($p) use ($tahunIni) {
 
-            // Gunakan method yang sama seperti di halaman detail
             $infoCutiTahunan  = $p->getInfoCutiTahunan($tahunIni);
             $infoCutiTambahan = $p->getInfoCutiTambahan($tahunIni);
 
             // Cuti Tahunan
-            $p->kuota_tahunan    = $infoCutiTahunan['kuota_awal'];
-            $p->terpakai_tahunan = $infoCutiTahunan['terpakai'];
-            $p->sisa_tahunan     = $infoCutiTahunan['sisa'];
+            $p->kuota_tahunan    = $this->formatHari((float)$infoCutiTahunan['kuota_awal']);
+            $p->terpakai_tahunan = $this->formatHari((float)$infoCutiTahunan['terpakai']);
+            $p->sisa_tahunan     = $this->formatHari((float)$infoCutiTahunan['sisa']);
 
             // Cuti Tambahan
-            $p->kuota_tambahan    = $infoCutiTambahan['kuota_awal'];
-            $p->terpakai_tambahan = $infoCutiTambahan['terpakai'];
-            $p->sisa_tambahan     = $infoCutiTambahan['sisa'];
+            $p->kuota_tambahan    = $this->formatHari((float)$infoCutiTambahan['kuota_awal']);
+            $p->terpakai_tambahan = $this->formatHari((float)$infoCutiTambahan['terpakai']);
+            $p->sisa_tambahan     = $this->formatHari((float)$infoCutiTambahan['sisa']);
 
             return $p;
         });

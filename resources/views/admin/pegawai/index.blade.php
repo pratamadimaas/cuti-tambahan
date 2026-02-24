@@ -50,10 +50,10 @@
                                 <td>{{ $p->pangkat_gol }}</td>
                                 <td>{{ $p->jabatan }}</td>
                                 <td class="text-center">
-                                    <span class="badge bg-info">{{ $p->sisa_cuti_tahunan }} hari</span>
+                                    <span class="badge bg-info">{{ $p->sisa_display_tahunan }} hari</span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge bg-success">{{ $p->sisa_cuti_tambahan }} hari</span>
+                                    <span class="badge bg-success">{{ $p->sisa_display_tambahan }} hari</span>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">

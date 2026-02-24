@@ -83,25 +83,23 @@
                         @enderror
                     </div>
 
-                   <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">Unit Kerja <span class="text-danger">*</span></label>
                         <select 
                             class="form-select @error('unit_kerja') is-invalid @enderror"
                             name="unit_kerja"
                             required>
-                            
                             <option value="">-- Pilih Unit Kerja --</option>
                             <option value="KPPN Kolaka" 
                                 {{ old('unit_kerja') == 'KPPN Kolaka' ? 'selected' : '' }}>
                                 KPPN Kolaka
                             </option>
-                            
                         </select>
-
                         @error('unit_kerja')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     {{-- SEKSI --}}
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Seksi</label>
@@ -124,14 +122,13 @@
                         @enderror
                     </div>
 
-                    {{-- INFO KEPALA SEKSI (readonly, otomatis) --}}
+                    {{-- INFO KEPALA SEKSI --}}
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kepala Seksi</label>
                         <div class="form-control bg-light d-flex flex-column justify-content-center"
                              id="infoKepala"
                              style="min-height: 38px; cursor: default;">
                             @if(old('seksi_id'))
-                                {{-- Jika ada old value (misal setelah validasi gagal) --}}
                                 @php $oldSeksi = $seksiList->find(old('seksi_id')); @endphp
                                 @if($oldSeksi)
                                     <span class="fw-semibold">{{ $oldSeksi->nama_kepala_seksi }}</span>
@@ -150,6 +147,7 @@
                                name="sisa_cuti_tahunan" 
                                value="{{ old('sisa_cuti_tahunan', 12) }}" 
                                min="0"
+                               step="0.5"
                                placeholder="0">
                         @error('sisa_cuti_tahunan')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -164,6 +162,7 @@
                                name="sisa_cuti_tambahan" 
                                value="{{ old('sisa_cuti_tambahan', 0) }}" 
                                min="0"
+                               step="0.5"
                                placeholder="0">
                         @error('sisa_cuti_tambahan')
                             <div class="invalid-feedback">{{ $message }}</div>
