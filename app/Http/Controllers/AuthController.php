@@ -32,7 +32,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $role = Auth::user()->role;
-            $name = Auth::user()->username;
+            $name = Auth::user()->pegawai->nama ?? Auth::user()->username;
 
             if ($role === 'sekre') {
                 return redirect()->route('admin.buku-tamu.index')->with('success', 'Selamat datang, ' . $name);

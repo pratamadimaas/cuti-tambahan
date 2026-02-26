@@ -32,7 +32,7 @@
                             @csrf
 
                             <div class="mb-4">
-                                <label class="form-label fw-semibold">Tanggal Nota Dinas <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Tanggal Permohonan <span class="text-danger">*</span></label>
                                 <input type="date" name="tanggal_nota_dinas"
                                        class="form-control @error('tanggal_nota_dinas') is-invalid @enderror"
                                        value="{{ old('tanggal_nota_dinas') }}" required>
