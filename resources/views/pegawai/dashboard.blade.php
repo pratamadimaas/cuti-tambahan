@@ -203,9 +203,10 @@
         </div>
         <div class="p-4">
             <ul class="mb-0" style="font-size: 13.5px; line-height: 2;">
-                <li>Sisa cuti tambahan akan otomatis berkurang setelah permohonan disetujui</li>
+                <li>Sisa cuti tahunan dan tambahan akan otomatis berkurang setelah permohonan disetujui oleh kepegawaian</li>
                 <li>Permohonan yang sudah disetujui hanya dapat diubah atau dihapus oleh kepegawaian</li>
                 <li>Cuti tahunan dan cuti tambahan diajukan secara bersamaan</li>
+                <li>Aplikasi ini hanya untuk pendamping aplikasi satu kemenkeu terkait cuti tahunan, apabila terdapat perbedaan informasi, silahkan hubungi kepegawaian</li>
             </ul>
         </div>
     </div>
