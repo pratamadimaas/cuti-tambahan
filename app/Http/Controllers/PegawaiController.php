@@ -87,51 +87,45 @@ class PegawaiController extends Controller
     }
 
     public function update(Request $request, Pegawai $pegawai)
-    {
-        $request->validate([
-            'nama'               => 'required|string|max:255',
-            'nip'                => 'required|string|max:18|unique:pegawai,nip,' . $pegawai->id . '|unique:users,username,' . $pegawai->user_id,
-            'pangkat_gol'        => 'required|string|max:255',
-            'jabatan'            => 'required|string|max:255',
-            'unit_kerja'         => 'required|string|max:255',
-            'seksi_id'           => 'nullable|exists:seksi,id',
-            'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
-            'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
-        ]);
+{
+    $request->validate([
+        'nama'               => 'required|string|max:255',
+        'nip'                => 'required|string|max:18|unique:pegawai,nip,' . $pegawai->id . '|unique:users,username,' . $pegawai->user_id,
+        'pangkat_gol'        => 'required|string|max:255',
+        'jabatan'            => 'required|string|max:255',
+        'unit_kerja'         => 'required|string|max:255',
+        'seksi_id'           => 'nullable|exists:seksi,id',
+        'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
+        'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
+    ]);
 
-        DB::beginTransaction();
-        try {
-            $pegawai->update($request->only([
-                'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id'
-            ]));
+    DB::beginTransaction();
+    try {
+        $pegawai->update($request->only([
+            'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id'
+        ]));
 
-            // Update sisa cuti
-            if ($request->has('sisa_cuti_tahunan')) {
-                $pegawai->sisa_cuti_tahunan = $request->sisa_cuti_tahunan;
-            }
-            if ($request->has('sisa_cuti_tambahan')) {
-                $pegawai->sisa_cuti_tambahan = $request->sisa_cuti_tambahan;
-            }
-
-            // IMPORTANT: Jika kuota belum pernah diset, set sama dengan sisa
-            if (is_null($pegawai->kuota_cuti_tahunan)) {
-                $pegawai->kuota_cuti_tahunan = $pegawai->sisa_cuti_tahunan;
-            }
-            if (is_null($pegawai->kuota_cuti_tambahan)) {
-                $pegawai->kuota_cuti_tambahan = $pegawai->sisa_cuti_tambahan;
-            }
-
-            $pegawai->save();
-            $pegawai->user->update(['username' => $request->nip]);
-
-            DB::commit();
-            return redirect()->route('admin.pegawai.index')
-                ->with('success', 'Data pegawai berhasil diperbarui');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal memperbarui pegawai: ' . $e->getMessage())->withInput();
+        // Update sisa cuti DAN kuota sekaligus agar getter ikut berubah
+        if ($request->has('sisa_cuti_tahunan')) {
+            $pegawai->sisa_cuti_tahunan  = $request->sisa_cuti_tahunan;
+            $pegawai->kuota_cuti_tahunan = $request->sisa_cuti_tahunan;
         }
+        if ($request->has('sisa_cuti_tambahan')) {
+            $pegawai->sisa_cuti_tambahan  = $request->sisa_cuti_tambahan;
+            $pegawai->kuota_cuti_tambahan = $request->sisa_cuti_tambahan;
+        }
+
+        $pegawai->save();
+        $pegawai->user->update(['username' => $request->nip]);
+
+        DB::commit();
+        return redirect()->route('admin.pegawai.index')
+            ->with('success', 'Data pegawai berhasil diperbarui');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Gagal memperbarui pegawai: ' . $e->getMessage())->withInput();
     }
+}
 
     public function destroy(Pegawai $pegawai)
     {
