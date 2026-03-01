@@ -625,7 +625,35 @@
             </div>
         </nav>
     </div>
+
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Tamu</div>
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="{{ route('admin.buku-tamu.index') }}"
+                   class="nav-link {{ request()->routeIs('admin.buku-tamu.*') ? 'active' : '' }}">
+                    <span class="nav-icon"><i class="bi bi-journal-text"></i></span>
+                    Buku Tamu
+                </a>
+            </div>
+        </nav>
+    </div>
+
     @endif
+
+    {{-- PROFIL — tampil untuk SEMUA user --}}
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Akun</div>
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="{{ route('profil') }}"
+                   class="nav-link {{ request()->routeIs('profil') ? 'active' : '' }}">
+                    <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
+                    Profil & Password
+                </a>
+            </div>
+        </nav>
+    </div>
 
     {{-- SIDEBAR FOOTER: user info + tombol logout --}}
     <div class="sidebar-footer">

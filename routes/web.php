@@ -24,6 +24,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/monitoring', [CutiTambahanController::class, 'monitoring'])->name('monitoring');
 
+    // PROFIL — semua user yang sudah login
+    Route::get('/profil', [AuthController::class, 'profil'])->name('profil');
+    Route::put('/profil/password', [AuthController::class, 'updatePassword'])->name('profil.update-password');
+
+    // BUKU TAMU — semua user yang sudah login bisa akses
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/buku-tamu', [BukuTamuController::class, 'index'])->name('buku-tamu.index');
+        Route::get('/buku-tamu/create', [BukuTamuController::class, 'create'])->name('buku-tamu.create');
+        Route::post('/buku-tamu', [BukuTamuController::class, 'store'])->name('buku-tamu.store');
+        Route::get('/buku-tamu/{bukuTamu}/edit', [BukuTamuController::class, 'edit'])->name('buku-tamu.edit');
+        Route::put('/buku-tamu/{bukuTamu}', [BukuTamuController::class, 'update'])->name('buku-tamu.update');
+        Route::delete('/buku-tamu/{bukuTamu}', [BukuTamuController::class, 'destroy'])->name('buku-tamu.destroy');
+    });
+
     // PEGAWAI ROUTES
     Route::middleware('check.role:pegawai')->prefix('pegawai')->name('pegawai.')->group(function () {
         Route::get('/profil', [PegawaiController::class, 'profil'])->name('profil');
@@ -52,6 +66,9 @@ Route::middleware('auth')->group(function () {
         // Master Pegawai
         Route::resource('pegawai', PegawaiController::class);
 
+        // Reset Password Pegawai
+        Route::post('/pegawai/{pegawai}/reset-password', [PegawaiController::class, 'resetPassword'])->name('pegawai.reset-password');
+
         // Seksi
         Route::resource('seksi', SeksiController::class);
 
@@ -77,15 +94,5 @@ Route::middleware('auth')->group(function () {
         // Kepala Kantor
         Route::get('/kepala-kantor', [KepalaKantorController::class, 'index'])->name('kepala-kantor.index');
         Route::put('/kepala-kantor', [KepalaKantorController::class, 'update'])->name('kepala-kantor.update');
-    });
-
-    // BUKU TAMU ROUTES — Bisa diakses admin & sekre
-    Route::middleware('check.role:admin,sekre')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/buku-tamu', [BukuTamuController::class, 'index'])->name('buku-tamu.index');
-        Route::get('/buku-tamu/create', [BukuTamuController::class, 'create'])->name('buku-tamu.create');
-        Route::post('/buku-tamu', [BukuTamuController::class, 'store'])->name('buku-tamu.store');
-        Route::get('/buku-tamu/{bukuTamu}/edit', [BukuTamuController::class, 'edit'])->name('buku-tamu.edit');
-        Route::put('/buku-tamu/{bukuTamu}', [BukuTamuController::class, 'update'])->name('buku-tamu.update');
-        Route::delete('/buku-tamu/{bukuTamu}', [BukuTamuController::class, 'destroy'])->name('buku-tamu.destroy');
     });
 });

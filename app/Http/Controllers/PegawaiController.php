@@ -27,11 +27,9 @@ class PegawaiController extends Controller
 
     public function create()
     {
-        $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
-        
-        // Ambil semua pegawai untuk dijadikan opsi atasan
+        $seksiList   = \App\Models\Seksi::orderBy('nama_seksi')->get();
         $pegawaiList = Pegawai::orderBy('nama')->get();
-        
+
         return view('admin.pegawai.create', compact('seksiList', 'pegawaiList'));
     }
 
@@ -59,22 +57,22 @@ class PegawaiController extends Controller
                 'role'     => 'pegawai',
             ]);
 
-            $sisaTahunan = $request->sisa_cuti_tahunan ?? 12;
+            $sisaTahunan  = $request->sisa_cuti_tahunan  ?? 12;
             $sisaTambahan = $request->sisa_cuti_tambahan ?? 0;
 
             Pegawai::create([
-                'user_id'              => $user->id,
-                'nama'                 => $request->nama,
-                'nip'                  => $request->nip,
-                'pangkat_gol'          => $request->pangkat_gol,
-                'jabatan'              => $request->jabatan,
-                'unit_kerja'           => $request->unit_kerja,
-                'seksi_id'             => $request->seksi_id,
-                'atasan_id'            => $request->atasan_id,
-                'kuota_cuti_tahunan'   => $sisaTahunan,    
-                'kuota_cuti_tambahan'  => $sisaTambahan,   
-                'sisa_cuti_tahunan'    => $sisaTahunan,
-                'sisa_cuti_tambahan'   => $sisaTambahan,
+                'user_id'             => $user->id,
+                'nama'                => $request->nama,
+                'nip'                 => $request->nip,
+                'pangkat_gol'         => $request->pangkat_gol,
+                'jabatan'             => $request->jabatan,
+                'unit_kerja'          => $request->unit_kerja,
+                'seksi_id'            => $request->seksi_id,
+                'atasan_id'           => $request->atasan_id,
+                'kuota_cuti_tahunan'  => $sisaTahunan,
+                'kuota_cuti_tambahan' => $sisaTambahan,
+                'sisa_cuti_tahunan'   => $sisaTahunan,
+                'sisa_cuti_tambahan'  => $sisaTambahan,
             ]);
 
             DB::commit();
@@ -88,11 +86,9 @@ class PegawaiController extends Controller
 
     public function edit(Pegawai $pegawai)
     {
-        $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
-        
-        // Ambil semua pegawai kecuali dirinya sendiri untuk dijadikan opsi atasan
+        $seksiList   = \App\Models\Seksi::orderBy('nama_seksi')->get();
         $pegawaiList = Pegawai::where('id', '!=', $pegawai->id)->orderBy('nama')->get();
-        
+
         return view('admin.pegawai.edit', compact('pegawai', 'seksiList', 'pegawaiList'));
     }
 
@@ -110,7 +106,6 @@ class PegawaiController extends Controller
             'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
         ]);
 
-        // Validasi: atasan tidak boleh dirinya sendiri
         if ($request->atasan_id == $pegawai->id) {
             return back()->with('error', 'Pegawai tidak dapat menjadi atasan dirinya sendiri')->withInput();
         }
@@ -121,7 +116,6 @@ class PegawaiController extends Controller
                 'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id', 'atasan_id'
             ]));
 
-            // Update sisa cuti DAN kuota sekaligus agar getter ikut berubah
             if ($request->has('sisa_cuti_tahunan')) {
                 $pegawai->sisa_cuti_tahunan  = $request->sisa_cuti_tahunan;
                 $pegawai->kuota_cuti_tahunan = $request->sisa_cuti_tahunan;
@@ -148,7 +142,6 @@ class PegawaiController extends Controller
         DB::beginTransaction();
         try {
             $pegawai->delete();
-            
             DB::commit();
             return redirect()->route('admin.pegawai.index')
                 ->with('success', 'Pegawai dan akun user berhasil dihapus');
@@ -162,5 +155,22 @@ class PegawaiController extends Controller
     {
         $pegawai = auth()->user()->pegawai;
         return view('pegawai.profil', compact('pegawai'));
+    }
+
+    /**
+     * Reset password pegawai ke 123456 (khusus admin)
+     */
+    public function resetPassword(Pegawai $pegawai)
+    {
+        try {
+            $pegawai->user->update([
+                'password' => Hash::make('123456'),
+            ]);
+
+            return redirect()->route('admin.pegawai.index')
+                ->with('success', 'Password ' . $pegawai->nama . ' berhasil direset ke 123456');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal reset password: ' . $e->getMessage());
+        }
     }
 }
