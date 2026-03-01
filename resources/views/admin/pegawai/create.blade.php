@@ -140,6 +140,48 @@
                         </div>
                     </div>
 
+                    {{-- ATASAN --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Atasan Langsung</label>
+                        <select name="atasan_id"
+                                id="atasanSelect"
+                                class="form-select @error('atasan_id') is-invalid @enderror"
+                                onchange="updateInfoAtasan()">
+                            <option value="">-- Tidak Ada Atasan / Kepala Kantor --</option>
+                            @foreach($pegawaiList as $p)
+                                <option value="{{ $p->id }}"
+                                        data-nama="{{ $p->nama }}"
+                                        data-nip="{{ $p->nip }}"
+                                        data-jabatan="{{ $p->jabatan }}"
+                                        {{ old('atasan_id') == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nama }} - {{ $p->jabatan }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('atasan_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">Jika atasan adalah Kepala Kantor, biarkan kosong</small>
+                    </div>
+
+                    {{-- INFO ATASAN --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Info Atasan</label>
+                        <div class="form-control bg-light d-flex flex-column justify-content-center"
+                             id="infoAtasan"
+                             style="min-height: 38px; cursor: default;">
+                            @if(old('atasan_id'))
+                                @php $oldAtasan = $pegawaiList->find(old('atasan_id')); @endphp
+                                @if($oldAtasan)
+                                    <span class="fw-semibold">{{ $oldAtasan->nama }}</span>
+                                    <small class="text-muted">NIP: {{ $oldAtasan->nip }} | {{ $oldAtasan->jabatan }}</small>
+                                @endif
+                            @else
+                                <span class="text-muted fst-italic">Pilih atasan terlebih dahulu</span>
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Sisa Cuti Tahunan</label>
                         <input type="number" 
@@ -201,6 +243,22 @@
         const kepala = opt.getAttribute('data-kepala');
         const nip    = opt.getAttribute('data-nip');
         info.innerHTML = `<span class="fw-semibold">${kepala}</span><small class="text-muted">NIP: ${nip}</small>`;
+    }
+
+    function updateInfoAtasan() {
+        const select = document.getElementById('atasanSelect');
+        const info   = document.getElementById('infoAtasan');
+        const opt    = select.options[select.selectedIndex];
+
+        if (!select.value) {
+            info.innerHTML = '<span class="text-muted fst-italic">Pilih atasan terlebih dahulu</span>';
+            return;
+        }
+
+        const nama    = opt.getAttribute('data-nama');
+        const nip     = opt.getAttribute('data-nip');
+        const jabatan = opt.getAttribute('data-jabatan');
+        info.innerHTML = `<span class="fw-semibold">${nama}</span><small class="text-muted">NIP: ${nip} | ${jabatan}</small>`;
     }
 </script>
 @endpush

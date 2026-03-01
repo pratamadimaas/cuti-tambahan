@@ -16,8 +16,9 @@ class Pegawai extends Model
         'jabatan',
         'unit_kerja',
         'seksi_id',
-        'kuota_cuti_tahunan',      // ← Field baru
-        'kuota_cuti_tambahan',     // ← Field baru
+        'atasan_id',
+        'kuota_cuti_tahunan',     
+        'kuota_cuti_tambahan',     
         'sisa_cuti_tahunan',
         'sisa_cuti_tambahan',
     ];
@@ -44,6 +45,22 @@ class Pegawai extends Model
     public function seksi()
     {
         return $this->belongsTo(Seksi::class, 'seksi_id');
+    }
+
+    /**
+     * Relasi ke atasan (pegawai lain)
+     */
+    public function atasan()
+    {
+        return $this->belongsTo(Pegawai::class, 'atasan_id');
+    }
+
+    /**
+     * Relasi ke bawahan (pegawai yang dia atasani)
+     */
+    public function bawahan()
+    {
+        return $this->hasMany(Pegawai::class, 'atasan_id');
     }
 
     public function cutiTambahan()

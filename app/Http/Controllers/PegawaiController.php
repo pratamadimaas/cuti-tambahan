@@ -11,24 +11,28 @@ use Illuminate\Support\Facades\DB;
 class PegawaiController extends Controller
 {
     public function index()
-{
-        $pegawai = Pegawai::with(['user', 'seksi'])->latest()->get()->map(function ($p) {
-        $infoCutiTahunan  = $p->getInfoCutiTahunan();
-        $infoCutiTambahan = $p->getInfoCutiTambahan();
+    {
+        $pegawai = Pegawai::with(['user', 'seksi', 'atasan'])->latest()->get()->map(function ($p) {
+            $infoCutiTahunan  = $p->getInfoCutiTahunan();
+            $infoCutiTambahan = $p->getInfoCutiTambahan();
 
-        $p->sisa_display_tahunan  = $infoCutiTahunan['sisa'];
-        $p->sisa_display_tambahan = $infoCutiTambahan['sisa'];
+            $p->sisa_display_tahunan  = $infoCutiTahunan['sisa'];
+            $p->sisa_display_tambahan = $infoCutiTambahan['sisa'];
 
-        return $p;
-    });
+            return $p;
+        });
 
-    return view('admin.pegawai.index', compact('pegawai'));
-}
+        return view('admin.pegawai.index', compact('pegawai'));
+    }
 
     public function create()
     {
         $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
-        return view('admin.pegawai.create', compact('seksiList'));
+        
+        // Ambil semua pegawai untuk dijadikan opsi atasan
+        $pegawaiList = Pegawai::orderBy('nama')->get();
+        
+        return view('admin.pegawai.create', compact('seksiList', 'pegawaiList'));
     }
 
     public function store(Request $request)
@@ -40,6 +44,7 @@ class PegawaiController extends Controller
             'jabatan'            => 'required|string|max:255',
             'unit_kerja'         => 'required|string|max:255',
             'seksi_id'           => 'nullable|exists:seksi,id',
+            'atasan_id'          => 'nullable|exists:pegawai,id',
             'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
             'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
         ], [
@@ -65,8 +70,9 @@ class PegawaiController extends Controller
                 'jabatan'              => $request->jabatan,
                 'unit_kerja'           => $request->unit_kerja,
                 'seksi_id'             => $request->seksi_id,
-                'kuota_cuti_tahunan'   => $sisaTahunan,    // ← Set kuota = sisa awal
-                'kuota_cuti_tambahan'  => $sisaTambahan,   // ← Set kuota = sisa awal
+                'atasan_id'            => $request->atasan_id,
+                'kuota_cuti_tahunan'   => $sisaTahunan,    
+                'kuota_cuti_tambahan'  => $sisaTambahan,   
                 'sisa_cuti_tahunan'    => $sisaTahunan,
                 'sisa_cuti_tambahan'   => $sisaTambahan,
             ]);
@@ -83,49 +89,59 @@ class PegawaiController extends Controller
     public function edit(Pegawai $pegawai)
     {
         $seksiList = \App\Models\Seksi::orderBy('nama_seksi')->get();
-        return view('admin.pegawai.edit', compact('pegawai', 'seksiList'));
+        
+        // Ambil semua pegawai kecuali dirinya sendiri untuk dijadikan opsi atasan
+        $pegawaiList = Pegawai::where('id', '!=', $pegawai->id)->orderBy('nama')->get();
+        
+        return view('admin.pegawai.edit', compact('pegawai', 'seksiList', 'pegawaiList'));
     }
 
     public function update(Request $request, Pegawai $pegawai)
-{
-    $request->validate([
-        'nama'               => 'required|string|max:255',
-        'nip'                => 'required|string|max:18|unique:pegawai,nip,' . $pegawai->id . '|unique:users,username,' . $pegawai->user_id,
-        'pangkat_gol'        => 'required|string|max:255',
-        'jabatan'            => 'required|string|max:255',
-        'unit_kerja'         => 'required|string|max:255',
-        'seksi_id'           => 'nullable|exists:seksi,id',
-        'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
-        'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
-    ]);
+    {
+        $request->validate([
+            'nama'               => 'required|string|max:255',
+            'nip'                => 'required|string|max:18|unique:pegawai,nip,' . $pegawai->id . '|unique:users,username,' . $pegawai->user_id,
+            'pangkat_gol'        => 'required|string|max:255',
+            'jabatan'            => 'required|string|max:255',
+            'unit_kerja'         => 'required|string|max:255',
+            'seksi_id'           => 'nullable|exists:seksi,id',
+            'atasan_id'          => 'nullable|exists:pegawai,id',
+            'sisa_cuti_tahunan'  => 'nullable|numeric|min:0',
+            'sisa_cuti_tambahan' => 'nullable|numeric|min:0',
+        ]);
 
-    DB::beginTransaction();
-    try {
-        $pegawai->update($request->only([
-            'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id'
-        ]));
-
-        // Update sisa cuti DAN kuota sekaligus agar getter ikut berubah
-        if ($request->has('sisa_cuti_tahunan')) {
-            $pegawai->sisa_cuti_tahunan  = $request->sisa_cuti_tahunan;
-            $pegawai->kuota_cuti_tahunan = $request->sisa_cuti_tahunan;
-        }
-        if ($request->has('sisa_cuti_tambahan')) {
-            $pegawai->sisa_cuti_tambahan  = $request->sisa_cuti_tambahan;
-            $pegawai->kuota_cuti_tambahan = $request->sisa_cuti_tambahan;
+        // Validasi: atasan tidak boleh dirinya sendiri
+        if ($request->atasan_id == $pegawai->id) {
+            return back()->with('error', 'Pegawai tidak dapat menjadi atasan dirinya sendiri')->withInput();
         }
 
-        $pegawai->save();
-        $pegawai->user->update(['username' => $request->nip]);
+        DB::beginTransaction();
+        try {
+            $pegawai->update($request->only([
+                'nama', 'nip', 'pangkat_gol', 'jabatan', 'unit_kerja', 'seksi_id', 'atasan_id'
+            ]));
 
-        DB::commit();
-        return redirect()->route('admin.pegawai.index')
-            ->with('success', 'Data pegawai berhasil diperbarui');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Gagal memperbarui pegawai: ' . $e->getMessage())->withInput();
+            // Update sisa cuti DAN kuota sekaligus agar getter ikut berubah
+            if ($request->has('sisa_cuti_tahunan')) {
+                $pegawai->sisa_cuti_tahunan  = $request->sisa_cuti_tahunan;
+                $pegawai->kuota_cuti_tahunan = $request->sisa_cuti_tahunan;
+            }
+            if ($request->has('sisa_cuti_tambahan')) {
+                $pegawai->sisa_cuti_tambahan  = $request->sisa_cuti_tambahan;
+                $pegawai->kuota_cuti_tambahan = $request->sisa_cuti_tambahan;
+            }
+
+            $pegawai->save();
+            $pegawai->user->update(['username' => $request->nip]);
+
+            DB::commit();
+            return redirect()->route('admin.pegawai.index')
+                ->with('success', 'Data pegawai berhasil diperbarui');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memperbarui pegawai: ' . $e->getMessage())->withInput();
+        }
     }
-}
 
     public function destroy(Pegawai $pegawai)
     {

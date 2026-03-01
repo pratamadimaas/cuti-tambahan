@@ -17,9 +17,10 @@ class SuratController extends Controller
         }
 
         try {
-            $pegawai      = $cutiTambahan->pegawai->load('seksi');
+            $pegawai      = $cutiTambahan->pegawai->load(['seksi', 'atasan']);
             $kepalaKantor = KepalaKantor::getActive();
             $seksi        = $pegawai->seksi;
+            $atasan       = $pegawai->atasan;
 
             $infoCutiTambahan    = $pegawai->getInfoCutiTambahan();
             $sisaTambahanSebelum = $infoCutiTambahan['sisa'];
@@ -48,6 +49,20 @@ class SuratController extends Controller
             $template->setValue('NAMA_SEKSI',        $seksi ? $seksi->nama_seksi        : '-');
             $template->setValue('NAMA_KEPALA_SEKSI', $seksi ? $seksi->nama_kepala_seksi : '-');
             $template->setValue('NIP_KEPALA_SEKSI',  $seksi ? ($seksi->nip_kepala_seksi ?? '-') : '-');
+
+            // Data Atasan - jika ada atasan pakai atasan, jika tidak pakai kepala kantor
+            if ($atasan) {
+                $template->setValue('NAMA_ATASAN',        $atasan->nama);
+                $template->setValue('NIP_ATASAN',         $atasan->nip);
+                $template->setValue('PANGKAT_GOL_ATASAN', $atasan->pangkat_gol);
+                $template->setValue('JABATAN_ATASAN',     $atasan->jabatan);
+            } else {
+                // Jika tidak ada atasan, gunakan Kepala Kantor
+                $template->setValue('NAMA_ATASAN',        $kepalaKantor ? $kepalaKantor->nama        : '-');
+                $template->setValue('NIP_ATASAN',         $kepalaKantor ? $kepalaKantor->nip         : '-');
+                $template->setValue('PANGKAT_GOL_ATASAN', $kepalaKantor ? $kepalaKantor->pangkat_gol : '-');
+                $template->setValue('JABATAN_ATASAN',     'Kepala Kantor');
+            }
 
             // Cuti Tambahan
             $template->setValue('CUTI_TAMBAHAN',              $cutiTambahan->periode_cuti_tambahan);
@@ -100,9 +115,10 @@ class SuratController extends Controller
         }
 
         try {
-            $pegawai      = $cutiTambahan->pegawai->load('seksi');
+            $pegawai      = $cutiTambahan->pegawai->load(['seksi', 'atasan']);
             $kepalaKantor = KepalaKantor::getActive();
             $seksi        = $pegawai->seksi;
+            $atasan       = $pegawai->atasan;
 
             $infoCutiTambahan = $pegawai->getInfoCutiTambahan();
             $infoCutiTahunan  = $pegawai->getInfoCutiTahunan();
@@ -128,6 +144,19 @@ class SuratController extends Controller
             $template->setValue('NAMA_SEKSI',        $seksi ? $seksi->nama_seksi        : '-');
             $template->setValue('NAMA_KEPALA_SEKSI', $seksi ? $seksi->nama_kepala_seksi : '-');
             $template->setValue('NIP_KEPALA_SEKSI',  $seksi ? ($seksi->nip_kepala_seksi ?? '-') : '-');
+
+            // Data Atasan - jika ada atasan pakai atasan, jika tidak pakai kepala kantor
+            if ($atasan) {
+                $template->setValue('NAMA_ATASAN',        $atasan->nama);
+                $template->setValue('NIP_ATASAN',         $atasan->nip);
+                $template->setValue('PANGKAT_GOL_ATASAN', $atasan->pangkat_gol);
+                $template->setValue('JABATAN_ATASAN',     $atasan->jabatan);
+            } else {
+                $template->setValue('NAMA_ATASAN',        $kepalaKantor ? $kepalaKantor->nama        : '-');
+                $template->setValue('NIP_ATASAN',         $kepalaKantor ? $kepalaKantor->nip         : '-');
+                $template->setValue('PANGKAT_GOL_ATASAN', $kepalaKantor ? $kepalaKantor->pangkat_gol : '-');
+                $template->setValue('JABATAN_ATASAN',     'Kepala Kantor');
+            }
 
             // Cuti Tambahan
             $template->setValue('CUTI_TAMBAHAN',            $cutiTambahan->periode_cuti_tambahan);
@@ -180,9 +209,10 @@ class SuratController extends Controller
         }
 
         try {
-            $pegawai      = $cutiTambahan->pegawai->load('seksi');
+            $pegawai      = $cutiTambahan->pegawai->load(['seksi', 'atasan']);
             $kepalaKantor = KepalaKantor::getActive();
             $seksi        = $pegawai->seksi;
+            $atasan       = $pegawai->atasan;
 
             $infoCutiTambahan = $pegawai->getInfoCutiTambahan();
             $infoCutiTahunan  = $pegawai->getInfoCutiTahunan();
@@ -206,6 +236,19 @@ class SuratController extends Controller
             $template->setValue('NAMA_SEKSI',        $seksi ? $seksi->nama_seksi        : '-');
             $template->setValue('NAMA_KEPALA_SEKSI', $seksi ? $seksi->nama_kepala_seksi : '-');
             $template->setValue('NIP_KEPALA_SEKSI',  $seksi ? ($seksi->nip_kepala_seksi ?? '-') : '-');
+
+            // Data Atasan - jika ada atasan pakai atasan, jika tidak pakai kepala kantor
+            if ($atasan) {
+                $template->setValue('NAMA_ATASAN',        $atasan->nama);
+                $template->setValue('NIP_ATASAN',         $atasan->nip);
+                $template->setValue('PANGKAT_GOL_ATASAN', $atasan->pangkat_gol);
+                $template->setValue('JABATAN_ATASAN',     $atasan->jabatan);
+            } else {
+                $template->setValue('NAMA_ATASAN',        $kepalaKantor ? $kepalaKantor->nama        : '-');
+                $template->setValue('NIP_ATASAN',         $kepalaKantor ? $kepalaKantor->nip         : '-');
+                $template->setValue('PANGKAT_GOL_ATASAN', $kepalaKantor ? $kepalaKantor->pangkat_gol : '-');
+                $template->setValue('JABATAN_ATASAN',     'Kepala Kantor');
+            }
 
             // Cuti Tambahan
             $template->setValue('CUTI_TAMBAHAN',              $cutiTambahan->periode_cuti_tambahan);
